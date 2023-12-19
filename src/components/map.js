@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import geoData from "../data/o_cho_dua.json"
 
 function Map() {
   const mapContainer = useRef();
@@ -10,6 +11,8 @@ function Map() {
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+
+    console.log("map data", geoData)
 
     // unmount map function
     return () => map.remove();
