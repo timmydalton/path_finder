@@ -13,6 +13,36 @@ function Map() {
     }).addTo(map);
 
     console.log("map data", geoData)
+    
+    let text = ''
+
+    function onMapClick(e) {
+      let text = ''
+      if (!window.markerA) text = 'A'
+      else if (!window.markerB) text = 'B'
+      else {
+        map.removeLayer(window.markerA)
+        map.removeLayer(window.markerB)
+        window.markerA = null
+        window.markerB = null
+        return
+      }
+
+      console.log(e.latlng)
+
+      const newMarker = L.marker(e.latlng, {
+        icon: L.divIcon({
+          iconSize: 'auto',
+          className: 'icon-marker',
+          html: `<div class="marker-text">${text}</div>`
+        })
+      }).addTo(map)
+
+      if (text == 'A') window.markerA = newMarker
+      if (text == 'B') window.markerB = newMarker
+    }
+
+    map.on('click', onMapClick)
 
     // unmount map function
     return () => map.remove();
