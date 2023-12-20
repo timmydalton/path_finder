@@ -5,6 +5,7 @@ import { markerA, markerB } from "./Icons";
 import { findPath } from "./algorithm";
 import geoData from "./data/o_cho_dua.json"
 import geoDataParsed from "./data/o_cho_dua_new.json"
+import { getSquareDistance } from "./utils";
 import './App.css';
 
 function App() {
@@ -29,9 +30,14 @@ function App() {
   // final pathfinding path
   const [path, setPath] = useState([]); //Array of LatLng
 
+  const listPoint = geoDataParsed.features.filter(el => el.geometry.type == "Point") //2660 point
+
   const findClosestNode = (latlng) => {
     const lat = latlng.lat;
     const lon = latlng.lng;
+    
+    //Function tìm điểm gần nhất - chưa fix
+
     return {
       key: `${lat}`,
       lat,
