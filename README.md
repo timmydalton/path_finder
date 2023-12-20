@@ -1,70 +1,67 @@
-# Getting Started with Create React App
+-- run: npm run start
+-- port: 8081
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Data parsed đã được chạy qua hàm để chuyển về dạng đồ thị
+Đồ thị gồm array chứ các element, trong đó bao gồm các điểm (đỉnh) và đường (cạnh), biểu thị bởi kinh độ (lat) và vĩ độ (lng)
+------------------------------------------------------------------------------------------
+Cấu trúc 1 object đường
+{
+    "type": "Feature",
+    "src": 167,
+    "tgt": 168,
+    "geometry": {
+        "type": "LineString",
+        "coordinates": [
+            [
+                105.8215831,
+                21.0256754
+            ],
+            [
+                105.8218134,
+                21.0254602
+            ],
+            [
+                105.8218675,
+                21.0254096
+            ]
+        ]
+    },
+    "properties": {
+        "osmId": 194875325,
+        "tags": {
+            "highway": "residential"
+        }
+    },
+    "id": 474
+}
 
-## Available Scripts
+Hãy để ý, đường được nối giữa 2 đỉnh có id chứa trong src & tgt
+Đường được biểu thị bởi các điểm nối nhau có tọa độ trong thuộc tính coordinates
+Từ đó ta có thể tính được weight (chi phí đi = chiều dài) = độ dài đường đi theo tọa độ
+------------------------------------------------------------------------------------------
 
-In the project directory, you can run:
 
-### `npm start`
+Cấu trúc 1 object nút
 
-Runs the app in the development mode.\
-Open [http://localhost:8081](http://localhost:8081) to view it in your browser.
+{
+    "type": "Feature",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [
+            105.8195569,
+            21.0132807
+        ]
+    },
+    "properties": {
+        "osmId": 1497526858,
+        "tags": {}
+    },
+    "id": 103
+}
+------------------------------------------------------------------------------------------
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+Idea project là:
+Click chọn 2 điểm trên bản đồ -> có lat & lng (tọa độ) 2 điểm đó, từ đó tìm 2 điểm gần với hai điểm click chuột nhất trong data rồi vẽ đường đi nối 2 điểm đó qua
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Mục tiêu: Viết code thuật toán tìm đường đi ngắn nhất giữa 2 điểm trong data
