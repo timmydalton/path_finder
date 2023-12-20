@@ -1,3 +1,4 @@
 export const findPath = (startPoint, endPoint) => {
-  return path || []
+  let path = []
+  return path
 }
