@@ -69,3 +69,5 @@ Click chọn 2 điểm trên bản đồ -> có lat & lng (tọa độ) 2 điể
 Mục tiêu: Viết code thuật toán tìm đường đi ngắn nhất giữa 2 điểm trong data
 Input: id hai điểm đầu cuối A và B
 Output: Array chứa dãy các cạnh (LineString) cần phải đi qua lần lượt để di chuyển từ điểm A -> B, sao cho tổng chi phí di chuyển là ngắn nhất
+
+Note: Vì data này không phải đồ thị "kín", nghĩa là tồn tại nhiều graph trong data và các graph không được liên kết với nhau, nên hãy add fallback cho trường hợp không tìm thấy đường đi giữa 2 điểm
