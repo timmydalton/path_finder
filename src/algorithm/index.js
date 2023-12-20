@@ -1,7 +1,7 @@
 import geoDataParsed from '../data/o_cho_dua_new.json'
 
 export const findPath = (startPoint, endPoint, functionType = 'dijkstra') => {
-  const data = geoDataParsed.map(el => {
+  const data = geoDataParsed.features.map(el => {
     const element = {
       id: el.id,
       type: el.geometry.type,
@@ -15,6 +15,9 @@ export const findPath = (startPoint, endPoint, functionType = 'dijkstra') => {
     }
     return element
   })
+
+  const points = data.filter(el => el.type == "Point")
+  const edges = data.filter(el => el.type != "Point")
 
   console.log(data)
 
