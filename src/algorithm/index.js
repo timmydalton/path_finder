@@ -1,6 +1,6 @@
 import geoDataParsed from '../data/o_cho_dua_new.json'
 
-export const findPath = (startPoint, endPoint) => {
+export const findPath = (startPoint, endPoint, functionType = 'dijkstra') => {
   const data = geoDataParsed.map(el => {
     const element = {
       id: el.id,
