@@ -32,10 +32,12 @@ function App() {
 
   const listPoint = geoDataParsed.features.filter(el => el.geometry.type == "Point") //2660 point
 
+  console.log(geoDataParsed)
+
   const findClosestNode = (latlng) => {
     const lat = latlng.lat;
     const lon = latlng.lng;
-    
+
     //Function tìm điểm gần nhất - chưa fix
 
     return {
