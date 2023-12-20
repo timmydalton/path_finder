@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import geoData from "./data/o_cho_dua.json"
+import geoDataParsed from "./data/o_cho_dua_new.json"
 import './App.css';
 
 function App() {
@@ -15,9 +16,8 @@ function App() {
     console.log("map data", geoData)
     
     let text = ''
-    const geoDat = geoData
-    geoDat.features = geoDat.features.filter(el => ['Point', 'LineString'].includes(el.geometry.type) && el.properties.highway)
-    console.log("path and point data", geoDat)
+
+    console.log("parsed geo data", geoDataParsed)
 
     function onMapClick(e) {
       let text = ''
