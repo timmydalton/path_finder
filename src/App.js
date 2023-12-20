@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import { findPath } from "./algorithm";
 import geoData from "./data/o_cho_dua.json"
 import geoDataParsed from "./data/o_cho_dua_new.json"
 import './App.css';
