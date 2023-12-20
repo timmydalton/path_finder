@@ -14,6 +14,12 @@ function App() {
     }).addTo(map);
 
     console.log("map data", geoData)
+    const parsing = geoData
+    parsing.features = geoData.features.filter(el => {
+      return ['Point', 'LineString'].includes(el.geometry.type) && el.properties.highway
+    })
+
+    console.log("parsing data", parsing)
     
     let text = ''
 
