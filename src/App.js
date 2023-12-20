@@ -83,7 +83,7 @@ function App() {
   }
 
   const clickFindPath = (e) => {
-    console.log(e)
+    findPath(startNode, endNode, al)
   }
 
   const changeAl = (e) => {
@@ -122,8 +122,8 @@ function App() {
         onClick={handleClick}
       >
         <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         />
 
         <ZoomControl position={"bottomleft"} />

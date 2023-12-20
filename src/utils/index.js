@@ -20,9 +20,20 @@ export const minifyGeoJSON = (data) => {
 
     if (el.src || el.tgt) {
       element.adj = []
-      if (el.src) element.adj.push(el.src)
-      if (el.tgt) element.adj.push(el.tgt)
+      if (el.src) element.src = el.src
+      if (el.tgt) element.tgt = el.tgt
     }
+
+    if (element.type == 'LineString') {
+      let weight = 0
+      const coor = element.coordinates
+      for (let i = 0; i < coor.length - 1; i++) {
+        weight += getDistance({lng: coor[i][0], lat: coor[i][1]}, {lng: coor[i+1][0], lat: coor[i+1][1]})
+      }
+
+      element.weight = weight
+    }
+
     return element
   })
 }
