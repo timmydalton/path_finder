@@ -19,6 +19,11 @@ function App() {
 
     console.log("parsed geo data", geoDataParsed)
 
+    const point = geoDataParsed.features.filter(el => el.geometry.type == 'Point')
+    console.log("point", point)
+    const path = geoDataParsed.features.filter(el => el.geometry.type != 'Point')
+    console.log("path", path)
+
     function onMapClick(e) {
       let text = ''
       if (!window.markerA) text = 'A'
