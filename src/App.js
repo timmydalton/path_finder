@@ -5,12 +5,16 @@ import { markerA, markerB } from "./Icons";
 import { findPath } from "./algorithm";
 import geoData from "./data/o_cho_dua.json"
 import geoDataParsed from "./data/o_cho_dua_new.json"
-import { getSquareDistance } from "./utils";
+import { getDistance, minifyGeoJSON } from "./utils";
 import './App.css';
 
 function App() {
   const mapContainer = useRef();
 
+  // Algorithm
+  const [al, setAl] = useState('dijkstra')
+
+  // Map Init position
   const [lng, setLng] = useState(105.8203064);
   const [lat, setLat] = useState(21.0224683);
   const [zoom, setZoom] = useState(16);
@@ -30,20 +34,36 @@ function App() {
   // final pathfinding path
   const [path, setPath] = useState([]); //Array of LatLng
 
-  const listPoint = geoDataParsed.features.filter(el => el.geometry.type == "Point") //2660 point
-
-  console.log(geoDataParsed)
+  // data
+  const [geoData, setGeoData] = useState(minifyGeoJSON(geoDataParsed))
 
   const findClosestNode = (latlng) => {
-    const lat = latlng.lat;
-    const lon = latlng.lng;
+    let closestNode = {
+      id: null,
+      weight: Infinity,
+      coordinates: null
+    }
+    const pointData = geoData.filter(e => e.type == 'Point')
 
-    //Function tìm điểm gần nhất - chưa fix
+    const lat = latlng.lat;
+    const lng = latlng.lng;
+
+    pointData.forEach(p => {
+      const [pLng, pLat] = p.coordinates
+      const weight = getDistance({lat, lng}, {lat: pLat, lng: pLng})
+      if (weight < closestNode.weight) {
+        closestNode = {
+          id: p.id,
+          weight: weight,
+          coordinates: p.coordinates
+        }
+      }
+    })
 
     return {
-      key: `${lat}`,
-      lat,
-      lon
+      key: closestNode.id,
+      lat: closestNode.coordinates[1],
+      lng: closestNode.coordinates[0]
     };
   };
 
@@ -53,13 +73,21 @@ function App() {
       if (closest) {
         if (!startNode) {
           setStartNode(closest.key);
-          setStartMarkerPos(new LatLng(closest.lat, closest.lon));
+          setStartMarkerPos(new LatLng(closest.lat, closest.lng));
         } else {
           setEndNode(closest.key);
-          setEndMarkerPos(new LatLng(closest.lat, closest.lon));
+          setEndMarkerPos(new LatLng(closest.lat, closest.lng));
         }
       }
     }
+  }
+
+  const clickFindPath = (e) => {
+    console.log(e)
+  }
+
+  const changeAl = (e) => {
+    setAl(e.target.value)
   }
 
   //Drag node
@@ -72,7 +100,7 @@ function App() {
     const closest = findClosestNode(e.target._latlng);
     if (closest) {
       setStartNode(closest.key);
-      setStartMarkerPos(new LatLng(closest.lat, closest.lon));
+      setStartMarkerPos(new LatLng(closest.lat, closest.lng));
     }
   };
 
@@ -80,7 +108,7 @@ function App() {
     const closest = findClosestNode(e.target._latlng);
     if (closest) {
       setEndNode(closest.key);
-      setEndMarkerPos(new LatLng(closest.lat, closest.lon));
+      setEndMarkerPos(new LatLng(closest.lat, closest.lng));
     }
   };
 
@@ -133,6 +161,16 @@ function App() {
           <AnimatedPolyline positions={path} snakeSpeed={300} />
         )} */}
       </Map>
+      <div className={`trigger-btn ${!startMarkerPos || !endMarkerPos ? 'disabled' : ''}`} onClick={clickFindPath}>
+        Find Path
+      </div>
+      <div className="algorithm-container">
+        <select name="algorithm" onChange={changeAl} id="algorithm" value={al}>
+          <option value="dijkstra">Dijkstra</option>
+          <option value="astar">A*</option>
+          <option value="bfs">BFS</option>
+        </select>
+      </div>
     </div>
   );
 }
