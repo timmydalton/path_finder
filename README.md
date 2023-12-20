@@ -38,6 +38,8 @@ Cấu trúc 1 object đường
 Hãy để ý, đường được nối giữa 2 đỉnh có id chứa trong src & tgt
 Đường được biểu thị bởi các điểm nối nhau có tọa độ trong thuộc tính coordinates
 Từ đó ta có thể tính được weight (chi phí đi = chiều dài) = độ dài đường đi theo tọa độ
+
+Note: Để tính toán chính xác hơn thì nên nhân kinh độ, vĩ độ lên, vì hiện tại giá trị đang được làm tròn tới 7 dấu phẩy
 ------------------------------------------------------------------------------------------
 
 
