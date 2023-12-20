@@ -71,3 +71,6 @@ Input: id hai điểm đầu cuối A và B
 Output: Array chứa dãy các cạnh (LineString) cần phải đi qua lần lượt để di chuyển từ điểm A -> B, sao cho tổng chi phí di chuyển là ngắn nhất
 
 Note: Vì data này không phải đồ thị "kín", nghĩa là tồn tại nhiều graph trong data và các graph không được liên kết với nhau, nên hãy add fallback cho trường hợp không tìm thấy đường đi giữa 2 điểm
+
+Note: Để giảm hiệu năng tính toán tìm đường đi, thì data nên được tính toán trước, các đường đi LineString chúng ta sẽ tính toán
+  trước weight rồi lưu lại, khi chạy thuật toán tìm đường chỉ cần lấy data weight ra để so sánh, không cần tính lại -> Làm sau
