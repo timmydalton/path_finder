@@ -119,6 +119,7 @@ function App() {
 
   // on finish drag, set position to nearest
   const onStartNodeDragEnd = (e) => {
+    setCheckedNode([])
     const closest = findClosestNode(e.target._latlng);
     if (closest) {
       setStartNode(closest.key);
@@ -127,6 +128,7 @@ function App() {
   };
 
   const onEndNodeDragEnd = (e) => {
+    setCheckedNode([])
     const closest = findClosestNode(e.target._latlng);
     if (closest) {
       setEndNode(closest.key);
