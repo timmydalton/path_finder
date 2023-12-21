@@ -261,8 +261,11 @@ function App() {
             <option value="bfs">BFS</option>
           </select>
         </div>
-        <div>
+        <div style={{marginBottom: '0.5rem'}}>
           Execution time: {(endTime - startTime)/1e3}ms
+        </div>
+        <div>
+          Node passed: {path.length}
         </div>
       </div>
     </div>
