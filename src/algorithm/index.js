@@ -1,7 +1,7 @@
 import geoDataParsed from '../data/o_cho_dua_new.json'
 import { minifyGeoJSON } from '../utils'
 
-export const findPath = async (startPoint, endPoint, functionType = 'dijkstra', cb) => {
+export const findPath = async (startPoint, endPoint, functionType = 'dijkstra') => {
   const data = minifyGeoJSON(geoDataParsed)
 
   const points = data.filter(el => el.type == "Point")
@@ -20,7 +20,7 @@ export const findPath = async (startPoint, endPoint, functionType = 'dijkstra', 
         pointData: start,
         weight: startWeight
       })
-      return astar(start, end, points, edges, costMap, [], [start.id], cb)
+      return astar(start, end, points, edges, costMap, [], [start.id])
     }
   }
   
@@ -34,7 +34,7 @@ function getWeightBetweenPoints(A, B) {
   return Math.sqrt(x*x + y*y)
 }
 
-async function astar(cur, end, points, edges, costMap, pointPool, removedPoint, cb) {
+async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) {
   const connectedLine = edges.filter(ed => ed.src == cur.id || ed.tgt == cur.id)
   const costData = costMap.get(cur.id)
   for (let i = 0; i < connectedLine.length; i++) {
@@ -55,7 +55,6 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint, 
       const oldCostData = costMap.get(connectedPointId)
       if (oldCostData.weight < newCostData.weight) continue
     }
-    if (cb) cb(connectedPoint)
 
     pointPool.push(connectedPointId)
     costMap.set(connectedPointId, newCostData)
@@ -64,7 +63,10 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint, 
   // If checked end point return
   if (pointPool.includes(end.id)) {
     console.log('found astar')
-    return costMap.get(end.id)
+    return {
+      pointUsed: [...pointPool, ...removedPoint],
+      data: costMap.get(end.id)
+    }
   }
 
   // Fallback error
@@ -85,9 +87,12 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint, 
       }
     }
   }
+
+  // Case not connected
+  if (!minNode.id) return
   
   pointPool = pointPool.filter(e => e != minNode.id)
   removedPoint.push(minNode.id)
   const nextPoint = costMap.get(minNode.id).pointData
-  return await astar(nextPoint, end, points, edges, costMap, pointPool, removedPoint, cb)
+  return await astar(nextPoint, end, points, edges, costMap, pointPool, removedPoint)
 }

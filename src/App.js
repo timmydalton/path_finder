@@ -87,23 +87,28 @@ function App() {
     }
   }
   
-  const findPathCallBack = (data) => {
-    switch(al) {
-      case 'astar': {
-        const checked = checkedNode
-        if (checked.find(el => el.id == data.id)) return
-        checked.push(data)
-        setCheckedNode(checked)
-        break
-      }
-    }
-  }
+  // const findPathCallBack = (data) => {
+  //   switch(al) {
+  //     case 'astar': {
+  //       const checked = checkedNode
+  //       if (checked.find(el => el.id == data.id)) return
+  //       checked.push(data)
+  //       setCheckedNode(checked)
+  //       break
+  //     }
+  //   }
+  // }
 
   const clickFindPath = async (e) => {
     setCheckedNode([])
     setStartTime(Date.now())
     setIsRunning(true)
-    const data = await findPath(startNode, endNode, al, findPathCallBack)
+    const data = await findPath(startNode, endNode, al)
+    if (data) {
+      let usedNode = data.pointUsed.map(id => geoData.find(e => e.id == id))
+      usedNode = [...new Set(usedNode)]
+      setCheckedNode(usedNode)
+    }
     setEndTime(Date.now())
     setIsRunning(false)
   }
