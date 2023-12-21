@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
 import { LeafletMouseEvent, LatLng } from "leaflet";
-import { Map, Marker, TileLayer, ZoomControl } from "react-leaflet";
+import { Map, Marker, TileLayer, ZoomControl, Polyline } from "react-leaflet";
 import { markerA, markerB, nodeMarker } from "./Icons";
 import { findPath } from "./algorithm";
-import geoData from "./data/o_cho_dua.json"
+import geoDataOrigin from "./data/o_cho_dua.json"
 import geoDataParsed from "./data/o_cho_dua_new.json"
 import { getDistance, minifyGeoJSON } from "./utils";
 import './App.css';
@@ -42,6 +42,35 @@ function App() {
   const [startTime, setStartTime] = useState(0)
   const [endTime, setEndTime] = useState(0)
 
+  const findClosestNodeRaw = (latlng) => {
+    let closestNode = {
+      id: null,
+      weight: Infinity,
+      node: null
+    }
+    const pointData = geoDataOrigin.features.filter(e => e.geometry.type == 'Point')
+
+    const lat = latlng.lat;
+    const lng = latlng.lng;
+
+    pointData.forEach(p => {
+      const [pLng, pLat] = p.geometry.coordinates
+      if (!p.properties.name) return
+      const weight = getDistance({lat, lng}, {lat: pLat, lng: pLng})
+      if (weight < closestNode.weight) {
+        closestNode = {
+          id: p.id,
+          weight: weight,
+          node: p
+        }
+      }
+    })
+
+    console.log('closest node with name', closestNode.node)
+
+    return closestNode.node
+  }
+
   const findClosestNode = (latlng) => {
     let closestNode = {
       id: null,
@@ -75,6 +104,7 @@ function App() {
   const handleClick = (e) => {
     if (!startNode || !endNode) {
       const closest = findClosestNode(e.latlng);
+      const addressNode = findClosestNodeRaw(e.latlng)
       if (closest) {
         if (!startNode) {
           setStartNode(closest.key);
@@ -105,12 +135,23 @@ function App() {
     setIsRunning(true)
     const data = await findPath(startNode, endNode, al)
     if (data) {
-      let usedNode = data.pointUsed.map(id => geoData.find(e => e.id == id))
-      usedNode = [...new Set(usedNode)]
-      setCheckedNode(usedNode)
+      switch (al) {
+        case 'astar':
+          handleDataAstar(data)
+          break
+      }
     }
     setEndTime(Date.now())
     setIsRunning(false)
+  }
+
+  const handleDataAstar = (data) => {
+    let usedNode = data.pointUsed.map(id => geoData.find(e => e.id == id))
+    usedNode = [...new Set(usedNode)]
+    setCheckedNode(usedNode)
+    const pointPath = JSON.parse(JSON.stringify(data.data.pointPath))
+    const lineCoor = pointPath.map(p => p.coordinates.reverse())
+    setPath(lineCoor)
   }
 
   const changeAl = (e) => {
@@ -125,7 +166,9 @@ function App() {
   // on finish drag, set position to nearest
   const onStartNodeDragEnd = (e) => {
     setCheckedNode([])
+    setPath([])
     const closest = findClosestNode(e.target._latlng);
+    const addressNode = findClosestNodeRaw(e.target._latlng)
     if (closest) {
       setStartNode(closest.key);
       setStartMarkerPos(new LatLng(closest.lat, closest.lng));
@@ -134,7 +177,9 @@ function App() {
 
   const onEndNodeDragEnd = (e) => {
     setCheckedNode([])
+    setPath([])
     const closest = findClosestNode(e.target._latlng);
+    const addressNode = findClosestNodeRaw(e.target._latlng)
     if (closest) {
       setEndNode(closest.key);
       setEndMarkerPos(new LatLng(closest.lat, closest.lng));
@@ -197,10 +242,12 @@ function App() {
           />
         )}
 
-        {/* Render final path, if exists
-        {/* {pathFound && path.length > 0 && (
-          <AnimatedPolyline positions={path} snakeSpeed={300} />
-        )} */}
+        { path && path.length > 0 &&
+          <Polyline
+            positions={path}
+            color={'blue'}
+          />
+        }
       </Map>
       <div className={`trigger-btn ${!startMarkerPos || !endMarkerPos || isRunning ? 'disabled' : ''}`} onClick={clickFindPath}>
         Find Path
