@@ -1,7 +1,7 @@
 import geoDataParsed from '../data/o_cho_dua_new.json'
 import { minifyGeoJSON } from '../utils'
 
-export const findPath = async (startPoint, endPoint, functionType = 'dijkstra') => {
+export const findPath = async (startPoint, endPoint, functionType = 'dijkstra', cb) => {
   const data = minifyGeoJSON(geoDataParsed)
 
   const points = data.filter(el => el.type == "Point")
@@ -20,12 +20,11 @@ export const findPath = async (startPoint, endPoint, functionType = 'dijkstra') 
         pointData: start,
         weight: startWeight
       })
-      return astar(start, end, points, edges, costMap, [], [start.id])
+      return astar(start, end, points, edges, costMap, [], [start.id], cb)
     }
   }
-
-  let path = []
-  return path
+  
+  return
 }
 
 function getWeightBetweenPoints(A, B) {
@@ -35,31 +34,36 @@ function getWeightBetweenPoints(A, B) {
   return Math.sqrt(x*x + y*y)
 }
 
-async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) {
+async function astar(cur, end, points, edges, costMap, pointPool, removedPoint, cb) {
   const connectedLine = edges.filter(ed => ed.src == cur.id || ed.tgt == cur.id)
   const costData = costMap.get(cur.id)
   for (let i = 0; i < connectedLine.length; i++) {
     const line = connectedLine[i]
     const connectedPointId = line.src == cur.id ? line.tgt : line.src
     // If point checked return
-    if (pointPool.includes(connectedPointId) || removedPoint.includes(connectedPointId)) continue
-    pointPool.push(connectedPointId)
+    if (pointPool.includes(connectedPointId)) continue
     const connectedPoint = points.find(p => p.id == connectedPointId)
     const lineWeight = costData.path.reduce((a, c) => a + c.weight, 0)
     const directWeight = getWeightBetweenPoints(connectedPoint.coordinates, end.coordinates)
-    const newCostData = {
+    let newCostData = {
       path: [...costData.path, line],
       pointPath: [...costData.pointPath, connectedPoint],
       pointData: connectedPoint,
       weight: directWeight + lineWeight
     }
+    if (removedPoint.includes(connectedPointId)) {
+      const oldCostData = costMap.get(connectedPointId)
+      if (oldCostData.weight < newCostData.weight) continue
+    }
+    if (cb) cb(connectedPoint)
+
+    pointPool.push(connectedPointId)
     costMap.set(connectedPointId, newCostData)
   }
 
   // If checked end point return
   if (pointPool.includes(end.id)) {
-    console.log('found')
-    console.log(costMap.get(end.id))
+    console.log('found astar')
     return costMap.get(end.id)
   }
 
@@ -85,5 +89,5 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) 
   pointPool = pointPool.filter(e => e != minNode.id)
   removedPoint.push(minNode.id)
   const nextPoint = costMap.get(minNode.id).pointData
-  return await astar(nextPoint, end, points, edges, costMap, pointPool, removedPoint)
+  return await astar(nextPoint, end, points, edges, costMap, pointPool, removedPoint, cb)
 }

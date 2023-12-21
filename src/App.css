@@ -87,18 +87,23 @@
 
 .algorithm-container {
   position: absolute;
-  top: 24px;
-  left: 12px;
+  top: 0;
+  left: 0;
   z-index: 999;
-  width: 120px;
-  height: 24px;
+  width: auto;
+  text-align: left;
+  background-color: rgba(255, 255, 255, 0.731);
+  padding: 24px 12px 12px;
+  border-bottom-right-radius: 4px;
 }
 
 .algorithm-container select {
-  width: 100%;
-  height: 100%;
+  width: 120px;
+  height: 24px;
   border-radius: 4px;
   text-align: center;
+  margin-bottom: 0.5rem;
+  margin-left: 0.5rem;
 }
 
 .algorithm-container select:focus {

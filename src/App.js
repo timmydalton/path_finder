@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { LeafletMouseEvent, LatLng } from "leaflet";
 import { Map, Marker, TileLayer, ZoomControl } from "react-leaflet";
-import { markerA, markerB } from "./Icons";
+import { markerA, markerB, nodeMarker } from "./Icons";
 import { findPath } from "./algorithm";
 import geoData from "./data/o_cho_dua.json"
 import geoDataParsed from "./data/o_cho_dua_new.json"
@@ -32,10 +32,15 @@ function App() {
   const [isRunning, setIsRunning] = useState(false); //Bool
 
   // final pathfinding path
+  const [checkedNode, setCheckedNode] = useState([])
   const [path, setPath] = useState([]); //Array of LatLng
 
   // data
   const [geoData, setGeoData] = useState(minifyGeoJSON(geoDataParsed))
+
+  // execution timing
+  const [startTime, setStartTime] = useState(0)
+  const [endTime, setEndTime] = useState(0)
 
   const findClosestNode = (latlng) => {
     let closestNode = {
@@ -81,9 +86,26 @@ function App() {
       }
     }
   }
+  
+  const findPathCallBack = (data) => {
+    switch(al) {
+      case 'astar': {
+        const checked = checkedNode
+        if (checked.find(el => el.id == data.id)) return
+        checked.push(data)
+        setCheckedNode(checked)
+        break
+      }
+    }
+  }
 
-  const clickFindPath = (e) => {
-    findPath(startNode, endNode, al)
+  const clickFindPath = async (e) => {
+    setCheckedNode([])
+    setStartTime(Date.now())
+    setIsRunning(true)
+    const data = await findPath(startNode, endNode, al, findPathCallBack)
+    setEndTime(Date.now())
+    setIsRunning(false)
   }
 
   const changeAl = (e) => {
@@ -128,6 +150,18 @@ function App() {
 
         <ZoomControl position={"bottomleft"} />
 
+        { checkedNode &&
+          checkedNode.map(node => {
+            return (
+              <Marker
+                key={node.id}
+                position={[node.coordinates[1], node.coordinates[0]]}
+                icon={nodeMarker}
+              />
+            )
+          })
+        }
+
         {/* <PathfindingMarkers nodeData={nodeData} nodes={nodes} /> */}
 
         {/* Render start/end markers */}
@@ -161,15 +195,21 @@ function App() {
           <AnimatedPolyline positions={path} snakeSpeed={300} />
         )} */}
       </Map>
-      <div className={`trigger-btn ${!startMarkerPos || !endMarkerPos ? 'disabled' : ''}`} onClick={clickFindPath}>
+      <div className={`trigger-btn ${!startMarkerPos || !endMarkerPos || isRunning ? 'disabled' : ''}`} onClick={clickFindPath}>
         Find Path
       </div>
       <div className="algorithm-container">
-        <select name="algorithm" onChange={changeAl} id="algorithm" value={al}>
-          <option value="dijkstra">Dijkstra</option>
-          <option value="astar">A*</option>
-          <option value="bfs">BFS</option>
-        </select>
+        <div>
+          Algorithm:
+          <select name="algorithm" onChange={changeAl} id="algorithm" value={al}>
+            <option value="dijkstra">Dijkstra</option>
+            <option value="astar">A*</option>
+            <option value="bfs">BFS</option>
+          </select>
+        </div>
+        <div>
+          Execution time: {(endTime - startTime)/1e3}ms
+        </div>
       </div>
     </div>
   );
