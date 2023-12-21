@@ -69,8 +69,11 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) 
     }
   }
 
-  // Fallback error
-  if (pointPool.length + removedPoint.length >= points.length) return
+  // Fallback error, case search all and case no more point to search
+  if (pointPool.length + removedPoint.length >= points.length || !pointPool.length) {
+    console.log("There're no path")
+    return
+  }
 
   // Find next smallest weight in pointPool
   let minNode = {
@@ -87,9 +90,6 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) 
       }
     }
   }
-
-  // Case not connected
-  if (!minNode.id) return
   
   pointPool = pointPool.filter(e => e != minNode.id)
   removedPoint.push(minNode.id)
