@@ -137,7 +137,11 @@ function App() {
     const data = await findPath(startNode, endNode, al)
     setEndTime(Date.now())
     if (data) {
-      handleDataAstar(data)
+      switch (al) {
+        case 'astar':
+          handleDataAstar(data)
+          break
+      }
     }
     setIsRunning(false)
   }
