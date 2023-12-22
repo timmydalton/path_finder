@@ -113,7 +113,6 @@ async function initDijkstra(startID, endID, data) {
 
   const start = points.find(el => el.id == startID)
   const end = points.find(el => el.id == endID)
-  console.log('dijkstra')
   const costMap = new Map();
   const startWeight = 0;
   costMap.set(start.id, {
