@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { LeafletMouseEvent, LatLng } from "leaflet";
-import { Map, Marker, TileLayer, ZoomControl, Polyline } from "react-leaflet";
+import { Map, Marker, TileLayer, ZoomControl, Polyline, Popup } from "react-leaflet";
 import { markerA, markerB, nodeMarker } from "./Icons";
 import { findPath } from "./algorithm";
 import geoDataOrigin from "./data/o_cho_dua.json"
@@ -26,6 +26,8 @@ function App() {
   const [endMarkerPos, setEndMarkerPos] = useState(null); //LatLng
   const startNodeMarker = useRef(null); //Marker
   const endNodeMarker = useRef(null); //Marker
+  const [startAddr, setStartAddr] = useState('')
+  const [endAddr, setEndAddr] = useState('')
 
   // pathfinding state
   const [pathFound, setPathFound] = useState(false); //Bool
@@ -35,6 +37,7 @@ function App() {
   const [checkedNode, setCheckedNode] = useState([])
   const [path, setPath] = useState([]); //Array of LatLng
   const [nodeUsed, setNodeUsed] = useState(0)
+  const [pathWeight, setPathWeight] = useState(0)
 
   // data
   const [geoData, setGeoData] = useState(minifyGeoJSON(geoDataParsed))
@@ -67,7 +70,7 @@ function App() {
       }
     })
 
-    console.log('closest node with name', closestNode.node)
+    console.log(closestNode.node)
 
     return closestNode.node
   }
@@ -108,9 +111,11 @@ function App() {
       const addressNode = findClosestNodeRaw(e.latlng)
       if (closest) {
         if (!startNode) {
+          setStartAddr(getNodeName(addressNode))
           setStartNode(closest.key);
           setStartMarkerPos(new LatLng(closest.lat, closest.lng));
         } else {
+          setEndAddr(getNodeName(addressNode))
           setEndNode(closest.key);
           setEndMarkerPos(new LatLng(closest.lat, closest.lng));
         }
@@ -122,6 +127,7 @@ function App() {
     setCheckedNode([])
     setPath([])
     setNodeUsed(0)
+    setPathWeight(0)
     setIsRunning(true)
     setStartTime(Date.now())
     const data = await findPath(startNode, endNode, al)
@@ -145,10 +151,22 @@ function App() {
     const lineCoor = pointPath.map(p => p.coordinates.reverse())
     setPath(lineCoor)
     setNodeUsed(usedNode.length)
+    setPathWeight(data.data.weight)
   }
 
   const changeAl = (e) => {
     setAl(e.target.value)
+  }
+
+  const getNodeName = (node) => {
+    if (!node) return 'Not a node'
+    const { properties = {} } = node
+    let res = []
+    if (properties.name) res.push(properties.name)
+    for (const key in properties) {
+      if ((key.includes('addr') && !key.includes('postcode')) || ['network'].includes(key)) res.push(properties[key])
+    }
+    return res.join(' ')
   }
 
   //Drag node
@@ -160,9 +178,11 @@ function App() {
   const onStartNodeDragEnd = (e) => {
     setCheckedNode([])
     setNodeUsed(0)
+    setPathWeight(0)
     setPath([])
     const closest = findClosestNode(e.target._latlng);
     const addressNode = findClosestNodeRaw(e.target._latlng)
+    setStartAddr(getNodeName(addressNode))
     if (closest) {
       setStartNode(closest.key);
       setStartMarkerPos(new LatLng(closest.lat, closest.lng));
@@ -172,9 +192,11 @@ function App() {
   const onEndNodeDragEnd = (e) => {
     setCheckedNode([])
     setNodeUsed(0)
+    setPathWeight(0)
     setPath([])
     const closest = findClosestNode(e.target._latlng);
     const addressNode = findClosestNodeRaw(e.target._latlng)
+    setEndAddr(getNodeName(addressNode))
     if (closest) {
       setEndNode(closest.key);
       setEndMarkerPos(new LatLng(closest.lat, closest.lng));
@@ -220,7 +242,9 @@ function App() {
             draggable
             ondrag={onStartNodeDrag}
             ondragend={onStartNodeDragEnd}
-          />
+          >
+            <Popup>{startAddr}</Popup>
+          </Marker>
         )}
 
         {endMarkerPos && (
@@ -234,7 +258,9 @@ function App() {
             }}
             ondrag={onEndNodeDrag}
             ondragend={onEndNodeDragEnd}
-          />
+          >
+            <Popup>{endAddr}</Popup>
+          </Marker>
         )}
 
         { path && path.length > 0 &&
@@ -261,8 +287,11 @@ function App() {
         <div style={{marginBottom: '0.5rem'}}>
           Node passed: {path.length}
         </div>
-        <div>
+        <div style={{marginBottom: '0.5rem'}}>
           Node checked: {nodeUsed}
+        </div>
+        <div style={{marginBottom: '0.5rem'}}>
+          Path weight: {pathWeight}
         </div>
       </div>
     </div>
