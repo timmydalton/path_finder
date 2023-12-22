@@ -4,30 +4,12 @@ import { minifyGeoJSON } from '../utils'
 export const findPath = async (startPoint, endPoint, functionType = 'dijkstra') => {
   const data = minifyGeoJSON(geoDataParsed)
 
-  const points = data.filter(el => el.type == "Point")
-  const edges = data.filter(el => el.type != "Point")
-
-  const start = points.find(el => el.id == startPoint)
-  const end = points.find(el => el.id == endPoint)
-
-  const costMap = new Map();
-  const startWeight = getWeightBetweenPoints(start.coordinates, end.coordinates);
-  costMap.set(start.id, {
-    path: [],
-    pointPath: [start],
-    pointData: start,
-    weight: startWeight
-  });
-
   switch (functionType) {
     case 'astar': {
-      return astar(start, end, points, edges, costMap, [], [start.id])
+      return initAstar(startPoint, endPoint, data)
     }
     case 'dijkstra': {
-      return dijkstra(start, end, points, edges, costMap, [], [start.id]);
-    }
-    case 'bfs': {
-      return bfs(start, end, points, edges, costMap, [], [start.id]);
+      return initDijkstra(startPoint, endPoint, data)
     }
   }
   
@@ -39,6 +21,25 @@ function getWeightBetweenPoints(A, B) {
   const y = Math.abs(A[1] - B[1])
 
   return Math.sqrt(x*x + y*y)
+}
+
+async function initAstar(startID, endID, data) {
+  const points = data.filter(el => el.type == "Point")
+  const edges = data.filter(el => el.type != "Point")
+
+  const start = points.find(el => el.id == startID)
+  const end = points.find(el => el.id == endID)
+
+  const costMap = new Map();
+  const startWeight = getWeightBetweenPoints(start.coordinates, end.coordinates);
+  costMap.set(start.id, {
+    path: [],
+    pointPath: [start],
+    pointData: start,
+    weight: startWeight
+  });
+
+  return astar(start, end, points, edges, costMap, [], [start.id])
 }
 
 async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) {
@@ -70,9 +71,11 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) 
   // If checked end point return
   if (pointPool.includes(end.id)) {
     console.log('found astar')
+    const costResult = costMap.get(end.id)
+    costResult.weight = costResult.weight + costResult.path[costResult.path.length - 1].weight
     return {
       pointUsed: [...pointPool, ...removedPoint],
-      data: costMap.get(end.id)
+      data: costResult
     }
   }
 
@@ -104,110 +107,81 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) 
   return await astar(nextPoint, end, points, edges, costMap, pointPool, removedPoint)
 }
 
-async function dijkstra(cur, end, points, edges, costMap, pointPool, removedPoint) {
-  const connectedLines = edges.filter(ed => ed.src == cur.id || ed.tgt == cur.id);
-  const costData = costMap.get(cur.id);
+async function initDijkstra(startID, endID, data) {
+  const points = data.filter(el => el.type == "Point")
+  const edges = data.filter(el => el.type != "Point")
 
-  for (let i = 0; i < connectedLines.length; i++) {
-    const line = connectedLines[i];
-    const connectedPointId = line.src == cur.id ? line.tgt : line.src;
-
-    if (pointPool.includes(connectedPointId) || removedPoint.includes(connectedPointId)) continue;
-
-    pointPool.push(connectedPointId);
-    const connectedPoint = points.find(p => p.id == connectedPointId);
-    const lineWeight = costData.path.reduce((a, c) => a + c.weight, 0);
-    const newCostData = {
-      path: [...costData.path, line],
-      pointPath: [...costData.pointPath, connectedPoint],
-      pointData: connectedPoint,
-      weight: lineWeight + getWeightBetweenPoints(connectedPoint.coordinates, end.coordinates)
-    };
-    costMap.set(connectedPointId, newCostData);
-  }
-
-  if (pointPool.includes(end.id)) {
-    console.log('found');
-    return {
-      pointUsed: [...pointPool, ...removedPoint],
-      data: costMap.get(end.id)
-    }
-  }
-
-  if (pointPool.length + removedPoint.length >= points.length) return;
-
-  let minNode = {
-    id: null,
-    weight: Infinity
-  };
-
-  for (let i = 0; i < pointPool.length; i++) {
-    const pID = pointPool[i];
-    const pointCost = costMap.get(pID);
-
-    if (pointCost.weight < minNode.weight) {
-      minNode = {
-        id: pID,
-        weight: pointCost.weight
-      };
-    }
-  }
-
-  pointPool = pointPool.filter(e => e != minNode.id);
-  removedPoint.push(minNode.id);
-  const nextPoint = costMap.get(minNode.id).pointData;
-  return dijkstra(nextPoint, end, points, edges, costMap, pointPool, removedPoint);
+  const start = points.find(el => el.id == startID)
+  const end = points.find(el => el.id == endID)
+  console.log('dijkstra')
+  const costMap = new Map();
+  const startWeight = 0;
+  costMap.set(start.id, {
+    path: [],
+    pointPath: [start],
+    pointData: start,
+    weight: startWeight
+  });
+  return dijkstra(start, end, points, edges, costMap, [], [])
 }
 
-async function bfs(cur, end, points, edges, costMap, pointPool, removedPoint) {
-  const connectedLines = edges.filter(ed => ed.src == cur.id || ed.tgt == cur.id);
-
-  for (const line of connectedLines) {
-    const connectedPointId = line.src == cur.id ? line.tgt : line.src;
-
-    if (pointPool.includes(connectedPointId) || removedPoint.includes(connectedPointId)) continue;
-
-    pointPool.push(connectedPointId);
-    const connectedPoint = points.find(p => p.id == connectedPointId);
-    const lineWeight = costMap.get(cur.id).path.reduce((a, c) => a + c.weight, 0);
-    const newCostData = {
-      path: [...costMap.get(cur.id).path, line],
-      pointPath: [...costMap.get(cur.id).pointPath, connectedPoint],
+async function dijkstra(cur, end, points, edges, costMap, queue, removedPoint) {
+  const connectedLine = edges.filter(ed => ed.src == cur.id || ed.tgt == cur.id)
+  const costCur = costMap.get(cur.id)
+  for (let i = 0; i < connectedLine.length; i++) {
+    const line = connectedLine[i]
+    const connectedPointId = line.src == cur.id ? line.tgt : line.src
+    const connectedPoint = points.find(p => p.id == connectedPointId)
+    const newCost = {
+      path: [...costCur.path, line],
+      pointPath: [...costCur.pointPath, connectedPoint],
       pointData: connectedPoint,
-      weight: lineWeight + getWeightBetweenPoints(connectedPoint.coordinates, end.coordinates)
-    };
-    costMap.set(connectedPointId, newCostData);
+      weight: costCur.weight + line.weight
+    }
+    //If point already checked
+    if (removedPoint.includes(connectedPointId) || queue.find(el => el.id == connectedPointId)) {
+      const oldCost = costMap.get(connectedPointId)
+      if (!oldCost) {
+        console.log('old')
+      }
+      if (!oldCost || (oldCost && oldCost.weight > newCost.weight)) {
+        costMap.set(connectedPointId, newCost)
+      }
+      continue
+    }
+    costMap.set(connectedPointId, newCost)
+    queue.push(connectedPoint)
   }
 
-  if (pointPool.includes(end.id)) {
-    console.log('found');
+  if (queue.find(el => el.id == end.id)) {
+    console.log('found dijkstra')
     return {
-      pointUsed: [...pointPool, ...removedPoint],
+      pointUsed: [...queue.map(el => el.id), ...removedPoint],
       data: costMap.get(end.id)
     }
   }
 
-  if (pointPool.length + removedPoint.length >= points.length) return;
+  if (!queue.length) {
+    console.log('dijkstra no path found')
+    return
+  }
 
-  let minNode = {
-    id: null,
+  //find next point with smallest weight
+  removedPoint.push(cur.id)
+  const smallest = {
+    point: null,
     weight: Infinity
-  };
+  }
 
-  for (let i = 0; i < pointPool.length; i++) {
-    const pID = pointPool[i];
-    const pointCost = costMap.get(pID);
-
-    if (pointCost.weight < minNode.weight) {
-      minNode = {
-        id: pID,
-        weight: pointCost.weight
-      };
+  for(let i = 0; i < queue.length; i++) {
+    const cost = costMap.get(queue[i].id)
+    if (cost.weight < smallest.weight) {
+      smallest.point = cost.pointData
+      smallest.weight = cost.weight
     }
   }
 
-  pointPool = pointPool.filter(e => e != minNode.id);
-  removedPoint.push(minNode.id);
-  const nextPoint = costMap.get(minNode.id).pointData;
-  return bfs(nextPoint, end, points, edges, costMap, pointPool, removedPoint);
+  queue = queue.filter(el => el.id != smallest.point.id)
+
+  return dijkstra(smallest.point, end, points, edges, costMap, queue, removedPoint)
 }

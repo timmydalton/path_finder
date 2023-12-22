@@ -34,6 +34,7 @@ function App() {
   // final pathfinding path
   const [checkedNode, setCheckedNode] = useState([])
   const [path, setPath] = useState([]); //Array of LatLng
+  const [nodeUsed, setNodeUsed] = useState(0)
 
   // data
   const [geoData, setGeoData] = useState(minifyGeoJSON(geoDataParsed))
@@ -117,28 +118,18 @@ function App() {
     }
   }
   
-  // const findPathCallBack = (data) => {
-  //   switch(al) {
-  //     case 'astar': {
-  //       const checked = checkedNode
-  //       if (checked.find(el => el.id == data.id)) return
-  //       checked.push(data)
-  //       setCheckedNode(checked)
-  //       break
-  //     }
-  //   }
-  // }
-
   const clickFindPath = async (e) => {
     setCheckedNode([])
     setPath([])
+    setNodeUsed(0)
     setStartTime(Date.now())
     setIsRunning(true)
     const data = await findPath(startNode, endNode, al)
     setEndTime(Date.now())
+    console.log(data)
     if (data) {
       switch (al) {
-        case 'astar':
+        case 'astar': case 'dijkstra':
           handleDataAstar(data)
           break
       }
@@ -153,6 +144,7 @@ function App() {
     const pointPath = JSON.parse(JSON.stringify(data.data.pointPath))
     const lineCoor = pointPath.map(p => p.coordinates.reverse())
     setPath(lineCoor)
+    setNodeUsed(usedNode.length)
   }
 
   const changeAl = (e) => {
@@ -167,6 +159,7 @@ function App() {
   // on finish drag, set position to nearest
   const onStartNodeDragEnd = (e) => {
     setCheckedNode([])
+    setNodeUsed(0)
     setPath([])
     const closest = findClosestNode(e.target._latlng);
     const addressNode = findClosestNodeRaw(e.target._latlng)
@@ -178,6 +171,7 @@ function App() {
 
   const onEndNodeDragEnd = (e) => {
     setCheckedNode([])
+    setNodeUsed(0)
     setPath([])
     const closest = findClosestNode(e.target._latlng);
     const addressNode = findClosestNodeRaw(e.target._latlng)
@@ -259,14 +253,16 @@ function App() {
           <select name="algorithm" onChange={changeAl} id="algorithm" value={al}>
             <option value="dijkstra">Dijkstra</option>
             <option value="astar">A*</option>
-            <option value="bfs">BFS</option>
           </select>
         </div>
         <div style={{marginBottom: '0.5rem'}}>
           Execution time: {(endTime - startTime)/1e3}ms
         </div>
-        <div>
+        <div style={{marginBottom: '0.5rem'}}>
           Node passed: {path.length}
+        </div>
+        <div>
+          Node checked: {nodeUsed}
         </div>
       </div>
     </div>
