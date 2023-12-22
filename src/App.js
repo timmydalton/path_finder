@@ -131,17 +131,14 @@ function App() {
 
   const clickFindPath = async (e) => {
     setCheckedNode([])
+    setPath([])
     setStartTime(Date.now())
     setIsRunning(true)
     const data = await findPath(startNode, endNode, al)
-    if (data) {
-      switch (al) {
-        case 'astar':
-          handleDataAstar(data)
-          break
-      }
-    }
     setEndTime(Date.now())
+    if (data) {
+      handleDataAstar(data)
+    }
     setIsRunning(false)
   }
 
