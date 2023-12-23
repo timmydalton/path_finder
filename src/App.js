@@ -291,7 +291,7 @@ function App() {
           Node checked: {nodeUsed}
         </div>
         <div style={{marginBottom: '0.5rem'}}>
-          Path weight: {pathWeight}
+          Path weight: {Math.round((pathWeight * 1e4)) / 1e4}km
         </div>
       </div>
     </div>

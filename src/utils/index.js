@@ -1,13 +1,20 @@
 export const getDistance = (nodeA, nodeB) => {
-  const latA = nodeA.lat
-  const latB = nodeB.lat
-  const lngA = nodeA.lng
-  const lngB = nodeB.lng
+  const latA = degrees_to_radians(nodeA.lat)
+  const latB = degrees_to_radians(nodeB.lat)
+  const lngA = degrees_to_radians(nodeA.lng)
+  const lngB = degrees_to_radians(nodeB.lng)
 
   const x = Math.abs(latA - latB)
   const y = Math.abs(lngA - lngB)
+  const val = Math.pow(Math.sin(x/2), 2) + Math.cos(latA)*Math.cos(latB)*Math.pow(Math.sin(y/2), 2)
 
-  return Math.sqrt(x*x + y*y)
+  return 6378.8 * (2 * Math.asin(Math.sqrt(val)));
+}
+
+export function degrees_to_radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
 }
 
 export const minifyGeoJSON = (data) => {

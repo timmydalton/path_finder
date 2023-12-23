@@ -1,5 +1,5 @@
 import geoDataParsed from '../data/o_cho_dua_new.json'
-import { minifyGeoJSON } from '../utils'
+import { minifyGeoJSON, degrees_to_radians } from '../utils'
 
 export const findPath = async (startPoint, endPoint, functionType = 'dijkstra') => {
   const data = minifyGeoJSON(geoDataParsed)
@@ -17,10 +17,16 @@ export const findPath = async (startPoint, endPoint, functionType = 'dijkstra') 
 }
 
 function getWeightBetweenPoints(A, B) {
-  const x = Math.abs(A[0] - B[0])
-  const y = Math.abs(A[1] - B[1])
+  const latA = degrees_to_radians(A[1])
+  const latB = degrees_to_radians(B[1])
+  const lngA = degrees_to_radians(A[0])
+  const lngB = degrees_to_radians(B[0])
 
-  return Math.sqrt(x*x + y*y)
+  const x = Math.abs(latA - latB)
+  const y = Math.abs(lngA - lngB)
+  const val = Math.pow(Math.sin(x/2), 2) + Math.cos(latA)*Math.cos(latB)*Math.pow(Math.sin(y/2), 2)
+
+  return 6378.8 * (2 * Math.asin(Math.sqrt(val)));
 }
 
 async function initAstar(startID, endID, data) {
