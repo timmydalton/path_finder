@@ -23,6 +23,7 @@ export const minifyGeoJSON = (data) => {
       id: el.id,
       type: el.geometry.type,
       coordinates: el.geometry.coordinates,
+      properties: el.properties
     }
 
     if (el.src || el.tgt) {

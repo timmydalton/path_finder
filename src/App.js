@@ -145,6 +145,7 @@ function App() {
 
   const handleDataAstar = (data) => {
     let usedNode = data.pointUsed.map(id => geoData.find(e => e.id == id))
+    console.log(data)
     usedNode = [...new Set(usedNode)]
     setCheckedNode(usedNode)
     const pointPath = JSON.parse(JSON.stringify(data.data.pointPath))

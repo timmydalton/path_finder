@@ -55,7 +55,6 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) 
     const line = connectedLine[i]
     const connectedPointId = line.src == cur.id ? line.tgt : line.src
     // If point checked return
-    if (pointPool.includes(connectedPointId)) continue
     const connectedPoint = points.find(p => p.id == connectedPointId)
     const lineWeight = costData.path.reduce((a, c) => a + c.weight, 0)
     const directWeight = getWeightBetweenPoints(connectedPoint.coordinates, end.coordinates)
@@ -65,9 +64,12 @@ async function astar(cur, end, points, edges, costMap, pointPool, removedPoint) 
       pointData: connectedPoint,
       weight: directWeight + lineWeight
     }
-    if (removedPoint.includes(connectedPointId)) {
+    if (removedPoint.includes(connectedPointId) || pointPool.includes(connectedPointId)) {
       const oldCostData = costMap.get(connectedPointId)
-      if (oldCostData.weight < newCostData.weight) continue
+      if (oldCostData.weight > newCostData.weight) {
+        costMap.set(connectedPointId, newCostData)
+      }
+      continue
     }
 
     pointPool.push(connectedPointId)
@@ -137,6 +139,7 @@ async function dijkstra(cur, end, points, edges, costMap, queue, removedPoint) {
     const line = connectedLine[i]
     const connectedPointId = line.src == cur.id ? line.tgt : line.src
     const connectedPoint = points.find(p => p.id == connectedPointId)
+    if (line.properties?.tags?.oneway && connectedPointId == line.src) continue
     const newCost = {
       path: [...costCur.path, line],
       pointPath: [...costCur.pointPath, connectedPoint],
